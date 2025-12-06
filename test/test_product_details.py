@@ -11,7 +11,11 @@ def test_product_details_page():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Remote(
+        command_executor='http://localhost:4444/wd/hub',
+        options=options
+    )
+    wait = WebDriverWait(driver, 10)
 
     try:
         print("\n=== TEST: Product Details Page ===")
