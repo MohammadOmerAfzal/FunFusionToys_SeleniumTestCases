@@ -1,9 +1,20 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
 
-# Try without headless first
-driver = webdriver.Chrome()
+chrome_options = Options()
+chrome_options.add_argument("--headless=new")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--window-size=1920,1080")
+
+# IMPORTANT: Use your actual ChromeDriver path
+service = Service("/usr/local/bin/chromedriver")
+
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 print("Test: Add items and check cart quantity")
 
@@ -41,8 +52,10 @@ try:
         p_tags = cart_items[0].find_elements(By.TAG_NAME, "p")
         if len(p_tags) >= 4:
             print(f"Quantity after adding 2 more: {p_tags[3].text}")
+    print("Test case Passed")
 
 except Exception as e:
     print(f"Error: {e}")
 
 driver.quit()
+
