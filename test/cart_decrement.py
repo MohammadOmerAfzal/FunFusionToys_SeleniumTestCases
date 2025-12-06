@@ -17,8 +17,11 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--window-size=1920,1080")
 
-service = Service("/usr/local/bin/chromedriver")
-driver = webdriver.Chrome(service=service, options=chrome_options)
+driver = webdriver.Remote(
+    command_executor='http://localhost:4444/wd/hub',  # this is the Selenium container
+    options=chrome_options
+)
+
 wait = WebDriverWait(driver, 15)
 
 def get_cart_row():
