@@ -12,9 +12,11 @@ chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--window-size=1920,1080")
 
 # IMPORTANT: Use your actual ChromeDriver path
-service = Service("/usr/local/bin/chromedriver")
-
-driver = webdriver.Chrome(service=service, options=chrome_options)
+driver = webdriver.Remote(
+    command_executor='http://localhost:4444/wd/hub',
+    options=options
+)
+wait = WebDriverWait(driver, 10)
 
 print("Test: Add items and check cart quantity")
 
