@@ -1,6 +1,6 @@
 selenium==4.16.0          
 pytest>=7.4.0             
-webdriver-manager>=4.8.0  
+webdriver-manager==4.10.0  
 requests>=2.31.0          
 
 
