@@ -9,7 +9,11 @@ def test_valid_login():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--headless=new")
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Remote(
+        command_executor='http://localhost:4444/wd/hub',
+        options=options
+    )
+    wait = WebDriverWait(driver, 10)
 
     try:
         driver.get("http://3.214.127.147:5174/")
