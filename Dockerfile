@@ -1,23 +1,22 @@
-# Use Selenium prebuilt Chrome image
 FROM selenium/standalone-chrome:latest
 
-# Set working directory
-WORKDIR /app
-
-# Install Python 3 and pip
 USER root
+
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
-COPY requirements.txt .
+WORKDIR /app
 
 # Install Python dependencies
+COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy all Selenium tests into /app/test
+# Copy the test folder exactly as-is
 COPY test ./test
 
-# Set default command to run tests
-CMD ["pytest", "test/test_main.py"]
+# Debug: show the test structure
+RUN echo "=== DEBUG: contents of /app/test ===" && ls -R /app/test
+
+# Run your custom test suite
+CMD ["python3", "test/test_main.py"]
