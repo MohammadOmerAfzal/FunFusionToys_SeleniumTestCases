@@ -14,7 +14,7 @@ chrome_options.add_argument("--window-size=1920,1080")
 # IMPORTANT: Use your actual ChromeDriver path
 driver = webdriver.Remote(
     command_executor='http://localhost:4444/wd/hub',
-    options=options
+    options=chrome_options
 )
 wait = WebDriverWait(driver, 10)
 
