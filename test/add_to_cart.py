@@ -12,8 +12,11 @@ chrome_options.add_argument("--headless")  # remove if you want to see the brows
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
-service = Service("/usr/local/bin/chromedriver")
-driver = webdriver.Chrome(service=service, options=chrome_options)
+driver = webdriver.Remote(
+    command_executor='http://localhost:4444/wd/hub',  # this is the Selenium container
+    options=chrome_options
+)
+
 wait = WebDriverWait(driver, 10)
 
 try:
