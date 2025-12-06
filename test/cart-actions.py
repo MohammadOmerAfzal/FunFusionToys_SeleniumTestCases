@@ -19,8 +19,10 @@ chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 # -----------------------------
 # Driver Setup
 # -----------------------------
-service = Service("/usr/local/bin/chromedriver")
-driver = webdriver.Chrome(service=service, options=chrome_options)
+driver = webdriver.Remote(
+    command_executor='http://localhost:4444/wd/hub',  # this is the Selenium container
+    options=chrome_options
+)
 
 print("WebDriver initialized")
 
