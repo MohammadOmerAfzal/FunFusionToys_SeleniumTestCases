@@ -1,10 +1,4 @@
 selenium==4.16.0          
 pytest>=7.4.0             
-<<<<<<< HEAD
 webdriver-manager==4.10.0  
-=======
-webdriver-manager==4.10.0 
->>>>>>> 4043da565e93a3355b41fcdfa045bc4100e15e09
 requests>=2.31.0          
-
-
