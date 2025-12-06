@@ -16,8 +16,8 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your Selenium tests
+# Copy all Selenium tests
 COPY . .
 
-# Run tests
-CMD ["python3", "test/test_main.py"]
+# Run the main test suite
+CMD ["pytest", "test_main.py"]
