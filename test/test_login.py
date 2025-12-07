@@ -1,61 +1,41 @@
-from selenium import webdriver
+# test_valid_login.py
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait # <-- ADDED: Needed for 'wait'
-import time
-import os # <-- NEW: Import os module
+from selenium.webdriver.support import expected_conditions as EC
+import pytest
 
-# --- Dynamic Host Setup (Required for CI) ---
-# SELENIUM_HOST will be 'selenium-node-ci' (container name)
-SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
-SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+def test_valid_login(driver, wait, base_url):
+    """
+    Test user login flow using fixtures from conftest.py.
+    Verifies that the login succeeds.
+    """
+    print("\n▶️ Test: Valid User Login")
 
-# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
-BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
-# --------------------------------------------
+    # Step 1: Open homepage/login page
+    driver.get(base_url)
 
-
-def test_valid_login():
-    options = Options()
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--headless=new")
-    options.add_argument("--remote-allow-origins=*")
-    options.add_argument("--disable-features=VizDisplayCompositor")
-
-    driver = webdriver.Remote(
-        # UPDATED: Use the dynamic SELENIUM_URL
-        command_executor=SELENIUM_URL,
-        options=options
+    # Step 2: Enter email
+    email_input = wait.until(
+        EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Email']"))
     )
-    # The wait object needs to be defined
-    wait = WebDriverWait(driver, 10) 
+    email_input.send_keys("testuser@example.com")
 
+    # Step 3: Enter password
+    password_input = wait.until(
+        EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Password']"))
+    )
+    password_input.send_keys("123Test")
+
+    # Step 4: Click login button
+    login_btn = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//button"))
+    )
+    login_btn.click()
+
+    # Step 5: Verify login success
+    # Wait until URL changes or dashboard element appears (replace with actual selector)
+    # Here we wait until URL does NOT contain 'login'
     try:
-        # UPDATED: Use BASE_URL for website access
-        driver.get(BASE_URL)
-
-        # Enter email
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys("testuser@example.com")
-
-        # Enter password
-        driver.find_element(By.XPATH, "//input[@placeholder='Password']").send_keys("123Test")
-
-        # Click Login button
-        driver.find_element(By.XPATH, "//button").click()
-
-        time.sleep(2)
-
-        # Check if login succeeded
-        if "login" not in driver.current_url.lower():
-            print("✅ Login Success!")
-        else:
-            print("❌ Login Failed!")
-    
-    finally:
-        driver.quit()
-
-
-# Run directly
-if __name__ == "__main__":
-    test_valid_login()
+        wait.until(lambda d: "login" not in d.current_url.lower())
+        print(f"✅ Login Success! Current URL: {driver.current_url}")
+    except:
+        pytest.fail(f"❌ Login Failed! Still on login page: {driver.current_url}")
