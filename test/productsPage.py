@@ -21,6 +21,8 @@ def test_real_product_count():
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--remote-allow-origins=*") 
+    options.add_argument("--disable-gpu") 
 
     driver = webdriver.Remote(
         # UPDATED: Use the dynamic SELENIUM_URL
