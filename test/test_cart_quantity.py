@@ -9,7 +9,7 @@ import pytest
 
 # --- Dynamic Host Setup ---
 SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
-SELENIUM_URL = f'http://{SELENIUM_HOST}:4444'
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174')
 
 PRODUCT_DETAIL_URL = f"{BASE_URL}/Shop/676d55d151fc50240e3c9070"
