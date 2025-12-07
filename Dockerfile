@@ -19,5 +19,5 @@ COPY test ./test
 # Verify test structure
 RUN echo "=== Test files ===" && ls -la /app/test
 
-# Run all tests with pytest (auto-discovers test_*.py files)
-CMD ["pytest", "/app/test", "-v", "--tb=short", "--maxfail=1"]
+# Run tests with pytest
+CMD ["pytest", "/app/test", "--maxfail=1", "--disable-warnings", "-v"]
