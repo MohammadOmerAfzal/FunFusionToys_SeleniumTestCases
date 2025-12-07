@@ -154,19 +154,24 @@ def run_checkout_test():
 # ------------------ 8) Footer Check ------------------ #
 def footer_test():
     print("\n=== TEST: Footer ===")
-    driver.get(BASE_URL)  # Make sure you are on a page where footer exists
-    time.sleep(2)  # give time for JS to render footer
+    driver.get(BASE_URL)
+    
+    # Scroll to bottom to trigger footer render
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(2)  # allow React to render
+    
+    # Wait for footer to be visible
+    footer = WebDriverWait(driver, 20).until(
+        EC.visibility_of_element_located((By.CLASS_NAME, "Footer"))
+    )
+    
+    footer_text = footer.text
+    if "© 2024 Fun Fusion Toys" in footer_text:
+        print("✅ Footer verified")
+    else:
+        print("❌ Footer text mismatch")
+        print("Found text:", footer_text[:500])  # debug output
 
-    try:
-        footer = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "Footer"))
-        )
-        footer_text = footer.text
-        assert "© 2024 Fun Fusion Toys" in footer_text
-        print("✅ Footer text verified")
-    except:
-        print("❌ Footer not found or text mismatch")
-        print(driver.page_source[:1000])
 
 # ------------------ Run All Tests ------------------ #
 if __name__ == "__main__":
