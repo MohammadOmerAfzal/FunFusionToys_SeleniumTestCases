@@ -2,18 +2,34 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait # <-- ADDED: Needed for 'wait'
+from selenium.webdriver.support import expected_conditions as EC # <-- ADDED: Needed for 'EC'
 import time
+import os # <-- NEW: Import os module
 
-# Setup
+# --- Dynamic Host Setup (Required for CI) ---
+# SELENIUM_HOST will be 'selenium-node-ci' (container name)
+SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+
+# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
+# --------------------------------------------
+
+PRODUCT_DETAIL_URL = f"{BASE_URL}/Shop/676d55d151fc50240e3c9070"
+CHECKOUT_URL = f"{BASE_URL}/Checkout"
+
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
 driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',
+    # UPDATED: Use the dynamic SELENIUM_URL
+    command_executor=SELENIUM_URL,
     options=chrome_options
 )
+# Ensure WebDriverWait is imported
 wait = WebDriverWait(driver, 10)
 
 print("Testing: Unauthorized users cannot place orders")
@@ -21,15 +37,17 @@ print("=" * 50)
 
 # 1. Add product to cart (without login)
 print("\n1. Adding product to cart...")
-driver.get("http://3.214.127.147:5174/Shop/676d55d151fc50240e3c9070")
+# UPDATED: Use dynamic URL
+driver.get(PRODUCT_DETAIL_URL) 
 time.sleep(2)
 driver.find_element(By.CSS_SELECTOR, "button.add-to-cart-btn").click()
 time.sleep(2)
-print("   ✓ Product added to cart")
+print("    ✓ Product added to cart")
 
 # 2. Go to checkout page
 print("\n2. Going to checkout page...")
-driver.get("http://3.214.127.147:5174/Checkout")
+# UPDATED: Use dynamic URL
+driver.get(CHECKOUT_URL)
 time.sleep(2)
 
 # 3. Fill checkout form
@@ -44,7 +62,7 @@ form_data = {
 
 for field_name, value in form_data.items():
     driver.find_element(By.NAME, field_name).send_keys(value)
-    print(f"   ✓ Filled {field_name}")
+    print(f"    ✓ Filled {field_name}")
 
 # 4. Try to place order
 print("\n4. Attempting to place order...")
@@ -56,22 +74,21 @@ print("\n5. Checking result...")
 try:
     alert = driver.switch_to.alert
     alert_text = alert.text
-    print(f"   Alert message: '{alert_text}'")
+    print(f"    Alert message: '{alert_text}'")
     
     # Check if login is required
-    if "login" in alert_text.lower():
+    if "login" in alert_text.lower() or "sign in" in alert_text.lower():
         print("\n✅ TEST PASSED: Unauthorized users cannot place orders!")
-        print("   Reason: Login requirement alert shown")
-    elif "sign in" in alert_text.lower():
-        print("\n✅ TEST PASSED: Unauthorized users cannot place orders!")
-        print("   Reason: Sign in requirement alert shown")
+        print("    Reason: Login/Sign in requirement alert shown")
     else:
-        print(f"\n❌ TES PASSED: alert detected - '{alert_text}'")
+        # Note: If no login is required, this test should technically fail unless the alert is a generic success message.
+        print(f"\n❌ TEST FAILED: Alert detected, but did not require login/sign in: '{alert_text}'")
         
     alert.accept()
     
 except:
-    print("\n❌ TEST FAILED: No alert - order might have been placed!")
+    # This means no alert was shown. This is a critical failure for this test case.
+    print("\n❌ TEST FAILED: No alert shown. Order might have been placed without authorization!")
 
 print("\n" + "=" * 50)
 print("Test completed")
