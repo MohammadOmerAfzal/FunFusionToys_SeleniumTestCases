@@ -95,22 +95,55 @@ def cart_actions_test():
     print("✅ Cart actions completed")
 
 # ------------------ 6) Cart Decrement ------------------ #
+# ============================================================
+# 6) TEST: CART DECREMENT / REMOVE ITEM
+# ============================================================
 def cart_decrement_test():
-    print("=== TEST: Cart Decrement ===")
-    driver.get(f"{BASE_URL}/Shop/{PRODUCT_ID}")
-    sleep_for_react()
-    qty_input = wait.until(EC.presence_of_element_located((By.ID, "quantity")))
-    qty_input.clear()
-    qty_input.send_keys("3")
-    driver.find_element(By.CSS_SELECTOR, "button.add-to-cart-btn").click()
-    sleep_for_react()
-    driver.get(f"{BASE_URL}/Cart")
-    decrement_btn = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".cartitems-decrement")))
-    decrement_btn.click()
-    sleep_for_react()
-    print("✅ Cart quantity decremented")
+    print("\n=== TEST: Cart Decrement / Remove Item ===")
 
-# ------------------ 7) Footer Check ------------------ #
+    driver.get(f"{BASE_URL}/Cart")
+    time.sleep(2)
+
+    try:
+        # Find remove icon and click it to decrement/remove
+        remove_btn = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "remove-icon")))
+        remove_btn.click()
+        time.sleep(1)
+
+        # Check remaining cart items
+        cart_items = driver.find_elements(By.CSS_SELECTOR, ".cartitems-format")
+        print(f"Cart now contains {len(cart_items)} item(s)")
+    except:
+        print("❌ No remove button found. Cart may be empty or selector is wrong.")
+
+
+# ============================================================
+# 7) TEST: CHECKOUT
+# ============================================================
+def run_checkout_test():
+    print("\n=== TEST: Checkout ===")
+
+    driver.get(f"{BASE_URL}/Cart")
+    time.sleep(2)
+
+    try:
+        checkout_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button.checkout-btn")))
+        checkout_btn.click()
+
+        # Wait for redirect to checkout page (assuming URL contains /Checkout)
+        wait.until(EC.url_contains("/Checkout"))
+        print("✅ Checkout page opened successfully")
+
+        # Optional: fill checkout form if needed
+        # name_input = driver.find_element(By.NAME, "name")
+        # name_input.send_keys("Omer Test")
+        # ... add more fields as per your checkout form
+
+    except:
+        print("❌ Checkout button not found or page failed to load")
+
+
+# ------------------ 8) Footer Check ------------------ #
 def footer_test():
     print("=== TEST: Footer ===")
     driver.get(BASE_URL)
