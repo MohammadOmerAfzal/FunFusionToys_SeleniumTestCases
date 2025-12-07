@@ -4,205 +4,128 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import json
 
-# -------------------- CONFIG -------------------- #
 BASE_URL = "http://frontend-ci:5173"
 PRODUCT_ID = "676d55d151fc50240e3c9070"
 EXPECTED_PRODUCT_COUNT = 7
 
+# ------------------ Setup Driver ------------------ #
 options = webdriver.ChromeOptions()
-options.add_argument("--headless")
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1920,1080")
-options.add_argument("--no-sandbox")
 
 driver = webdriver.Chrome(options=options)
-wait = WebDriverWait(driver, 15)
+wait = WebDriverWait(driver, 20)
 
+# ------------------ Helper ------------------ #
+def sleep_for_react(seconds=3):
+    time.sleep(seconds)
 
-# ============================================================
-# 1) TEST: USER REGISTRATION
-# ============================================================
-def run_registration_test():
-    print("\n=== TEST: User Registration ===")
+# ------------------ 1) Registration ------------------ #
+def registration_test():
+    print("=== TEST: Registration ===")
     driver.get(BASE_URL)
-
-    # Click "Click here"
-    click_here = wait.until(EC.element_to_be_clickable((By.XPATH, '//span[text()="Click here"]')))
-    click_here.click()
-
-    # Fill form
+    wait.until(EC.element_to_be_clickable((By.XPATH, '//span[text()="Click here"]'))).click()
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'input[placeholder="First Name"]')))
     driver.find_element(By.CSS_SELECTOR, 'input[placeholder="First Name"]').send_keys("Omer")
     driver.find_element(By.CSS_SELECTOR, 'input[placeholder="Last Name"]').send_keys("TEST")
     driver.find_element(By.CSS_SELECTOR, 'input[placeholder="Email"]').send_keys("testuser@example.com")
     driver.find_element(By.CSS_SELECTOR, 'input[placeholder="Password"]').send_keys("123Test")
+    wait.until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Continue"]'))).click()
+    sleep_for_react()
+    print("✅ Registration completed")
 
-    # Continue
-    cont = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Continue"]')))
-    cont.click()
-
-    print("Registration Completed!")
-
-
-# ============================================================
-# 2) TEST: VALID LOGIN
-# ============================================================
-def run_login_test():
-    print("\n=== TEST: Valid Login ===")
+# ------------------ 2) Login ------------------ #
+def login_test():
+    print("=== TEST: Login ===")
     driver.get(BASE_URL)
+    wait.until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Email']"))).send_keys("testuser@example.com")
+    driver.find_element(By.XPATH, "//input[@placeholder='Password']").send_keys("123Test")
+    driver.find_element(By.TAG_NAME, "button").click()
+    sleep_for_react()
+    assert "login" not in driver.current_url.lower()
+    print("✅ Login successful")
 
-    email_input = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Email']")))
-    password_input = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Password']")))
-
-    email_input.send_keys("testuser@example.com")
-    password_input.send_keys("123Test")
-
-    login_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button")))
-    login_btn.click()
-
-    wait.until(lambda d: "login" not in d.current_url.lower())
-    print("Login Successful ✔")
-
-# ============================================================
-# 3) TEST: PRODUCT COUNT ON SHOP PAGE (FIXED)
-# ============================================================
-def run_product_count_test():
-    print("\n=== TEST: Real Product Count ===")
-    shop_url = f"{BASE_URL}/Shop"
-    driver.get(shop_url)
-
-    # Wait for URL to contain /Shop
-    wait.until(EC.url_contains("/Shop"))
-
-    # Give extra time for JS-rendered products
-    time.sleep(5)  # <-- adjust if your page is slow
-
-    try:
-        # Wait until at least 1 product is visible
-        products = WebDriverWait(driver, 20).until(
-            EC.visibility_of_all_elements_located((By.CLASS_NAME, "Item"))
-        )
-    except:
-        print("❌ No products found! Check if the frontend and backend are running correctly.")
-        print(driver.page_source[:1000])  # print first 1000 chars of HTML for debugging
-        return
-
-    print(f"Products Found: {len(products)}")
-
-    for p in products:
-        try:
-            title = p.find_element(By.CLASS_NAME, "item-name").text
-            price = p.find_element(By.CLASS_NAME, "item-price").text
-            print(f"➡ {title} | {price}")
-        except Exception as e:
-            print("⚠ Failed to read a product:", e)
-
-    if len(products) != EXPECTED_PRODUCT_COUNT:
-        print(f"❌ Expected {EXPECTED_PRODUCT_COUNT}, found {len(products)}")
-    else:
-        print("✔ Product count correct!")
-
-
-
-# ============================================================
-# 4) TEST: PRODUCT DETAILS PAGE
-# ============================================================
-def run_product_details_test():
-    print("\n=== TEST: Product Details Page ===")
+# ------------------ 3) Product Count ------------------ #
+def product_count_test():
+    print("=== TEST: Product Count ===")
     driver.get(f"{BASE_URL}/Shop")
-
+    sleep_for_react(5)
     products = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "Item")))
-    first = products[0]
-    product_name = first.find_element(By.CLASS_NAME, "item-name").text
-    first.click()
+    print(f"Products found: {len(products)}")
+    for p in products:
+        title = p.find_element(By.CLASS_NAME, "item-name").text
+        price = p.find_element(By.CLASS_NAME, "item-price").text
+        print(f"➡ {title} | {price}")
+    assert len(products) == EXPECTED_PRODUCT_COUNT, f"Expected {EXPECTED_PRODUCT_COUNT}, got {len(products)}"
+    print("✅ Product count correct")
 
-    # Validate details page
-    title_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, "h1")))
-    detail_title = title_element.text
-
-    print("Product detail page opened:", detail_title)
-
+# ------------------ 4) Product Details ------------------ #
+def product_details_test():
+    print("=== TEST: Product Details ===")
+    driver.get(f"{BASE_URL}/Shop")
+    sleep_for_react()
+    first_product = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".product-list > div:first-child")))
+    product_name = first_product.find_element(By.CLASS_NAME, "item-name").text
+    first_product.click()
+    sleep_for_react()
+    wait.until(EC.presence_of_element_located((By.TAG_NAME, "h1")))
     add_btn = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "add-to-cart-btn")))
-    ActionChains(driver).move_to_element(add_btn).click().perform()
+    print(f"✅ Product detail opened for: {product_name}")
 
-
-# ============================================================
-# 5) TEST: CART ACTIONS (QTY=2)
-# ============================================================
-def run_cart_actions_test():
-    print("\n=== TEST: Cart Actions (Qty = 2) ===")
-    product_url = f"{BASE_URL}/Shop/{PRODUCT_ID}"
-    driver.get(product_url)
-    time.sleep(2)
-
-    qty = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input#quantity")))
-    qty.clear()
-    qty.send_keys("2")
-
-    add_btn = driver.find_element(By.CSS_SELECTOR, "button.add-to-cart-btn")
-    add_btn.click()
-    time.sleep(2)
-
+# ------------------ 5) Cart Actions ------------------ #
+def cart_actions_test():
+    print("=== TEST: Cart Actions ===")
+    driver.get(f"{BASE_URL}/Shop/{PRODUCT_ID}")
+    sleep_for_react()
+    qty_input = wait.until(EC.presence_of_element_located((By.ID, "quantity")))
+    qty_input.clear()
+    qty_input.send_keys("2")
+    driver.find_element(By.CSS_SELECTOR, "button.add-to-cart-btn").click()
+    sleep_for_react()
     driver.get(f"{BASE_URL}/Cart")
-    time.sleep(2)
-
+    sleep_for_react()
     cart_items = driver.find_elements(By.CSS_SELECTOR, ".cartitems-format")
     print(f"Cart items: {len(cart_items)}")
+    assert len(cart_items) >= 1
+    print("✅ Cart actions completed")
 
-
-# ============================================================
-# 6) TEST: ADD TO CART (BASIC)
-# ============================================================
-def run_add_to_cart_test():
-    print("\n=== TEST: Add Product to Cart ===")
+# ------------------ 6) Cart Decrement ------------------ #
+def cart_decrement_test():
+    print("=== TEST: Cart Decrement ===")
     driver.get(f"{BASE_URL}/Shop/{PRODUCT_ID}")
-
-    add_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button.add-to-cart-btn")))
-    ActionChains(driver).move_to_element(add_btn).click().perform()
-
-    driver.get(f"{BASE_URL}/Cart")
-    cart_items = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".cartitems-format")))
-
-    print(f"Cart contains {len(cart_items)} item(s)")
-
-
-# ============================================================
-# 7) TEST: CART DECREMENT (ADD QTY=3 THEN DECREMENT)
-# ============================================================
-def run_cart_decrement_test():
-    print("\n=== TEST: Cart Decrement ===")
-
-    driver.get(f"{BASE_URL}/Shop/{PRODUCT_ID}")
-    time.sleep(2)
-
+    sleep_for_react()
     qty_input = wait.until(EC.presence_of_element_located((By.ID, "quantity")))
     qty_input.clear()
     qty_input.send_keys("3")
-
-    add_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".add-to-cart-btn")))
-    add_btn.click()
-    print("Added product with qty=3")
-
+    driver.find_element(By.CSS_SELECTOR, "button.add-to-cart-btn").click()
+    sleep_for_react()
     driver.get(f"{BASE_URL}/Cart")
-    time.sleep(2)
-
     decrement_btn = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".cartitems-decrement")))
     decrement_btn.click()
-    print("Decremented quantity once ✔")
+    sleep_for_react()
+    print("✅ Cart quantity decremented")
 
+# ------------------ 7) Footer Check ------------------ #
+def footer_test():
+    print("=== TEST: Footer ===")
+    driver.get(BASE_URL)
+    footer = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "Footer")))
+    assert "© 2024" in footer.text
+    print("✅ Footer text verified")
 
-# ============================================================
-# RUN ALL TESTS SEQUENTIALLY
-# ============================================================
-run_registration_test()
-run_login_test()
-run_product_count_test()
-run_product_details_test()
-run_cart_actions_test()
-run_add_to_cart_test()
-run_cart_decrement_test()
-
-driver.quit()
-print("\n🎉 ALL TESTS COMPLETED SUCCESSFULLY!")
-
+# ------------------ Run All Tests ------------------ #
+if __name__ == "__main__":
+    registration_test()
+    login_test()
+    product_count_test()
+    product_details_test()
+    cart_actions_test()
+    cart_decrement_test()
+    footer_test()
+    print("\n🎉 ALL TESTS COMPLETED SUCCESSFULLY!")
+    driver.quit()
