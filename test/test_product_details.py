@@ -23,6 +23,7 @@ def test_product_details_page():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--remote-allow-origins=*")
+    options.add_argument("--disable-features=VizDisplayCompositor")
 
     driver = webdriver.Remote(
         # UPDATED: Use the dynamic SELENIUM_URL
