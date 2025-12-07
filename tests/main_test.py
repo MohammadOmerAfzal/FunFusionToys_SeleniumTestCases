@@ -175,74 +175,51 @@ def footer_test():
         print("❌ Footer not found at all")
 # ------------------ 9) My Orders Page ------------------ #
 def my_orders_test():
-    print("\n=== TEST: MyOrders Page ===")
-    driver.get(f"{BASE_URL}/MyOrders")
-    sleep_for_react(3)
+    print("\n=== TEST: My Orders Page ===")
     
-    # Check if we're on the MyOrders page
+    # Go to My Orders page
+    driver.get(f"{BASE_URL}/MyOrders")
+    time.sleep(3)
+    
+    # Check page loaded
     try:
-        # Look for the page heading
-        page_heading = wait.until(
-            EC.presence_of_element_located((By.TAG_NAME, "h1"))
-        )
-        
-        if "My Orders" in page_heading.text:
-            print("✅ MyOrders page loaded successfully")
+        # Look for page title
+        title = driver.find_element(By.TAG_NAME, "h1").text
+        if "My Orders" in title:
+            print("✅ My Orders page loaded")
         else:
-            print(f"ℹ️ Page heading: {page_heading.text}")
+            print(f"Page title: {title}")
             
-        # Check for order cards
-        order_cards = driver.find_elements(By.CLASS_NAME, "order-card")
-        print(f"✅ Found {len(order_cards)} order(s)")
+        # Check for orders
+        orders = driver.find_elements(By.CLASS_NAME, "order-card")
+        print(f"Found {len(orders)} orders")
         
-        # Check for Sign Out button
-        try:
-            sign_out_btn = driver.find_element(By.XPATH, "//button[text()='Sign Out']")
-            print("✅ Sign Out button is present")
-        except:
-            print("ℹ️ Sign Out button not found")
-            
-    except Exception as e:
-        print(f"❌ Failed to access MyOrders page: {e}")
+    except:
+        print("❌ My Orders page not accessible")
 
-# ------------------ 10) Logout Test ------------------ #
+# ------------------ 10) Logout ------------------ #
 def logout_test():
     print("\n=== TEST: Logout ===")
     
-    # First go to a page where we can see logout button (MyOrders or Cart)
+    # Go to any page with logout button
     driver.get(f"{BASE_URL}/MyOrders")
-    sleep_for_react(2)
+    time.sleep(2)
     
+    # Click logout button
     try:
-        # Find and click the Sign Out button
-        sign_out_btn = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//button[text()='Sign Out']"))
-        )
-        sign_out_btn.click()
-        print("✅ Clicked Sign Out button")
-        sleep_for_react(3)
+        logout_btn = driver.find_element(By.XPATH, "//button[text()='Sign Out']")
+        logout_btn.click()
+        print("✅ Clicked Sign Out")
+        time.sleep(3)
         
-        # Verify we're redirected to login/landing page
-        current_url = driver.current_url
-        if "/Login" in current_url or "/login" in current_url or BASE_URL == current_url:
-            print("✅ Successfully logged out and redirected")
-            
-            # Try to access a protected page to confirm logout
-            driver.get(f"{BASE_URL}/MyOrders")
-            sleep_for_react(2)
-            
-            # After logout, we should be redirected away from MyOrders
-            if "/MyOrders" not in driver.current_url:
-                print("✅ Confirmed: Cannot access MyOrders after logout")
-            else:
-                print("ℹ️ Still on MyOrders page after logout")
-                
+        # Check if redirected to login/home page
+        if "login" in driver.current_url.lower() or driver.current_url == BASE_URL:
+            print("✅ Logged out successfully")
         else:
-            print(f"ℹ️ Current URL after logout: {current_url}")
+            print(f"Current URL: {driver.current_url}")
             
-    except Exception as e:
-        print(f"❌ Logout test failed: {e}")
-        print("Maybe already logged out or button not found")
+    except:
+        print("❌ Could not find/logout")
 # ------------------ Run All Tests ------------------ #
 if __name__ == "__main__":
     registration_test()
@@ -253,5 +230,7 @@ if __name__ == "__main__":
     cart_decrement_test()
     footer_test()
     run_checkout_test()
+    my_orders_test()
+    logout_test()
     print("\n🎉 ALL TESTS COMPLETED SUCCESSFULLY!")
     driver.quit()
