@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # -------------------- CONFIG -------------------- #
-BASE_URL = "http://user-frontend-ci:5173"
+BASE_URL = "http://frontend-ci:5173"
 PRODUCT_ID = "676d55d151fc50240e3c9070"
 EXPECTED_PRODUCT_COUNT = 7
 
