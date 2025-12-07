@@ -73,7 +73,10 @@ def run_product_count_test():
     shop_url = f"{BASE_URL}/Shop"
     driver.get(shop_url)
 
-    products = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "Item")))
+    wait.until(EC.url_contains("/Shop"))
+    wait.until(EC.presence_of_element_located((By.CLASS_NAME, "Item")))
+    products = driver.find_elements(By.CLASS_NAME, "Item")
+
     print(f"Products Found: {len(products)}")
 
     for p in products:
