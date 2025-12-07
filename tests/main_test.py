@@ -156,21 +156,23 @@ def footer_test():
     print("\n=== TEST: Footer ===")
     driver.get(BASE_URL)
     
-    # Scroll to bottom to trigger footer render
+    # Scroll to bottom slowly to trigger lazy-loaded footer
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(2)  # allow React to render
     
-    # Wait for footer to be visible
-    footer = WebDriverWait(driver, 20).until(
-        EC.visibility_of_element_located((By.CLASS_NAME, "Footer"))
-    )
-    
-    footer_text = footer.text
-    if "© 2024 Fun Fusion Toys" in footer_text:
+    # Wait until footer contains expected text
+    try:
+        footer = WebDriverWait(driver, 20).until(
+            EC.text_to_be_present_in_element((By.CLASS_NAME, "Footer"), "© 2024 Fun Fusion Toys")
+        )
         print("✅ Footer verified")
-    else:
-        print("❌ Footer text mismatch")
-        print("Found text:", footer_text[:500])  # debug output
+    except:
+        # Fallback: grab footer element and print what is actually there
+        try:
+            footer_elem = driver.find_element(By.CLASS_NAME, "Footer")
+            print("❌ Footer text mismatch")
+            print("Found text:", footer_elem.text[:500])
+        except:
+            print("❌ Footer not found at all")
 
 
 # ------------------ Run All Tests ------------------ #
