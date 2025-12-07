@@ -64,18 +64,29 @@ def run_login_test():
     wait.until(lambda d: "login" not in d.current_url.lower())
     print("Login Successful ✔")
 
-
 # ============================================================
-# 3) TEST: PRODUCT COUNT ON SHOP PAGE
+# 3) TEST: PRODUCT COUNT ON SHOP PAGE (FIXED)
 # ============================================================
 def run_product_count_test():
     print("\n=== TEST: Real Product Count ===")
     shop_url = f"{BASE_URL}/Shop"
     driver.get(shop_url)
 
+    # Wait for URL to contain /Shop
     wait.until(EC.url_contains("/Shop"))
-    wait.until(EC.presence_of_element_located((By.CLASS_NAME, "Item")))
-    products = driver.find_elements(By.CLASS_NAME, "Item")
+
+    # Give extra time for JS-rendered products
+    time.sleep(5)  # <-- adjust if your page is slow
+
+    try:
+        # Wait until at least 1 product is visible
+        products = WebDriverWait(driver, 20).until(
+            EC.visibility_of_all_elements_located((By.CLASS_NAME, "Item"))
+        )
+    except:
+        print("❌ No products found! Check if the frontend and backend are running correctly.")
+        print(driver.page_source[:1000])  # print first 1000 chars of HTML for debugging
+        return
 
     print(f"Products Found: {len(products)}")
 
@@ -84,13 +95,14 @@ def run_product_count_test():
             title = p.find_element(By.CLASS_NAME, "item-name").text
             price = p.find_element(By.CLASS_NAME, "item-price").text
             print(f"➡ {title} | {price}")
-        except:
-            pass
+        except Exception as e:
+            print("⚠ Failed to read a product:", e)
 
     if len(products) != EXPECTED_PRODUCT_COUNT:
         print(f"❌ Expected {EXPECTED_PRODUCT_COUNT}, found {len(products)}")
     else:
         print("✔ Product count correct!")
+
 
 
 # ============================================================
