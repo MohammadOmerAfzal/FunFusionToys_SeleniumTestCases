@@ -2,7 +2,19 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait # <-- ADDED: Needed for 'wait'
 import time
+import os # <-- NEW: Import os module
+
+
+# --- Dynamic Host Setup (Required for CI) ---
+# SELENIUM_HOST will be 'selenium-node-ci' (container name)
+SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+
+# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
+# --------------------------------------------
 
 
 def test_product_details_page():
@@ -12,16 +24,20 @@ def test_product_details_page():
     options.add_argument("--disable-dev-shm-usage")
 
     driver = webdriver.Remote(
-        command_executor='http://localhost:4444/wd/hub',
+        # UPDATED: Use the dynamic SELENIUM_URL
+        command_executor=SELENIUM_URL,
         options=options
     )
-    wait = WebDriverWait(driver, 10)
+    # The wait object needs to be defined
+    wait = WebDriverWait(driver, 10) 
 
     try:
         print("\n=== TEST: Product Details Page ===")
 
         # Step 1: Open shop page
-        driver.get("http://3.214.127.147:5174/Shop")
+        # UPDATED: Use BASE_URL for website access
+        shop_url = f"{BASE_URL}/Shop"
+        driver.get(shop_url)
         time.sleep(2)
 
         # Step 2: Select first product card
@@ -66,7 +82,6 @@ def test_product_details_page():
 
     finally:
         driver.quit()
-
 
 
 if __name__ == "__main__":
