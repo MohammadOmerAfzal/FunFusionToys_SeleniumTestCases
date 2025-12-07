@@ -177,5 +177,6 @@ if __name__ == "__main__":
     cart_actions_test()
     cart_decrement_test()
     footer_test()
+    run_checkout_test()
     print("\n🎉 ALL TESTS COMPLETED SUCCESSFULLY!")
     driver.quit()
