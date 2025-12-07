@@ -5,6 +5,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import os # <-- NEW: Import os module
+
+# --- Dynamic Host Setup (Required for CI) ---
+# SELENIUM_HOST will be 'selenium-node-ci' (container name)
+SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+
+# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
+# --------------------------------------------
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -12,13 +22,15 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
 driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',
+    # UPDATED: Use the dynamic SELENIUM_URL
+    command_executor=SELENIUM_URL,
     options=chrome_options
 )
 wait = WebDriverWait(driver, 10)
 
 # Open URL
-driver.get("http://3.214.127.147:5174/")
+# UPDATED: Use BASE_URL for website access
+driver.get(BASE_URL)
 
 # Wait and click "Click here"
 click_here = WebDriverWait(driver, 10).until(
@@ -48,4 +60,3 @@ time.sleep(2)
 print("Registration page title:", driver.title)
 
 driver.quit()
-
