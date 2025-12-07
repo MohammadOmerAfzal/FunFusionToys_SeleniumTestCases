@@ -9,7 +9,7 @@ import os # <-- NEW: Import os module
 # --- Dynamic Host Setup (Required for CI) ---
 # SELENIUM_HOST will be 'selenium-node-ci' (container name)
 SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
-SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444'
 
 # BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
