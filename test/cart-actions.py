@@ -26,6 +26,7 @@ chrome_options.add_argument("--window-size=1920,1080")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 chrome_options.add_argument("--remote-allow-origins=*")
+chrome_options.add_argument("--disable-features=VizDisplayCompositor")
 
 # -----------------------------
 # Driver Setup
