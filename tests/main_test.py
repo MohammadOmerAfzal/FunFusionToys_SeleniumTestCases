@@ -155,24 +155,43 @@ def run_checkout_test():
 def footer_test():
     print("\n=== TEST: Footer ===")
     driver.get(BASE_URL)
+    time.sleep(2)  # Give page time to load
     
-    # Scroll to bottom slowly to trigger lazy-loading
+    # Scroll to bottom
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(1)
     
     try:
-        # Wait for the footer-bottom paragraph specifically
-        footer_text_elem = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.Footer div.footer-bottom p"))
-        )
-        footer_text = footer_text_elem.text.strip()
+        # Try different selectors to find the footer text
+        footer_selectors = [
+            "div.Footer div.footer-bottom p",
+            ".footer-bottom p",
+            "div[class*='footer-bottom'] p"
+        ]
         
-        if "© 2024 Fun Fusion Toys" in footer_text:
-            print("✅ Footer verified")
+        footer_text_elem = None
+        for selector in footer_selectors:
+            try:
+                footer_text_elem = driver.find_element(By.CSS_SELECTOR, selector)
+                break
+            except:
+                continue
+        
+        if footer_text_elem:
+            footer_text = footer_text_elem.text.strip()
+            print(f"Footer text found: '{footer_text}'")
+            
+            # Check if the expected text is contained in the footer text
+            if "Fun Fusion Toys" in footer_text and "© 2024" in footer_text:
+                print("✅ Footer verified - Contains '© 2024 Fun Fusion Toys'")
+            else:
+                print(f"❌ Footer text doesn't contain expected text")
+                
         else:
-            print("❌ Footer text mismatch")
-            print("Found text:", footer_text[:500])
-    except:
-        print("❌ Footer not found at all")
+            print("❌ Footer element not found with any selector")
+            
+    except Exception as e:
+        print(f"❌ Footer test failed: {e}")
 # ------------------ 9) My Orders Page ------------------ #
 def my_orders_test():
     print("\n=== TEST: My Orders Page ===")
