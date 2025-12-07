@@ -1,7 +1,19 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait # <-- ADDED: Needed for 'wait'
 import time
+import os # <-- NEW: Import os module
+
+# --- Dynamic Host Setup (Required for CI) ---
+# SELENIUM_HOST will be 'selenium-node-ci' (container name)
+SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+
+# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
+# --------------------------------------------
+
 
 def test_valid_login():
     options = Options()
@@ -10,13 +22,16 @@ def test_valid_login():
     options.add_argument("--headless=new")
 
     driver = webdriver.Remote(
-        command_executor='http://localhost:4444/wd/hub',
+        # UPDATED: Use the dynamic SELENIUM_URL
+        command_executor=SELENIUM_URL,
         options=options
     )
-    wait = WebDriverWait(driver, 10)
+    # The wait object needs to be defined
+    wait = WebDriverWait(driver, 10) 
 
     try:
-        driver.get("http://3.214.127.147:5174/")
+        # UPDATED: Use BASE_URL for website access
+        driver.get(BASE_URL)
 
         # Enter email
         driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys("testuser@example.com")
@@ -30,7 +45,7 @@ def test_valid_login():
         time.sleep(2)
 
         # Check if login succeeded
-        if "login" not in driver.current_url:
+        if "login" not in driver.current_url.lower():
             print("✅ Login Success!")
         else:
             print("❌ Login Failed!")
@@ -42,4 +57,3 @@ def test_valid_login():
 # Run directly
 if __name__ == "__main__":
     test_valid_login()
-
