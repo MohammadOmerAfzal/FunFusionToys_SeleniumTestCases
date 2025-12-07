@@ -3,6 +3,16 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
+import os # <-- NEW: Import os module
+
+# --- Dynamic Host Setup (Required for CI) ---
+# SELENIUM_HOST will be 'selenium-node-ci' (container name)
+SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+
+# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
+# --------------------------------------------
 
 # -----------------------------
 # Chrome Options for EC2
@@ -20,7 +30,8 @@ chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 # Driver Setup
 # -----------------------------
 driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',  # this is the Selenium container
+    # UPDATED: Use the dynamic SELENIUM_URL
+    command_executor=SELENIUM_URL,  
     options=chrome_options
 )
 
@@ -30,7 +41,8 @@ print("WebDriver initialized")
 # Step 1: Open Product Page directly
 # -----------------------------
 product_id = "676d55d151fc50240e3c9070"
-product_url = f"http://3.214.127.147:5174/Shop/{product_id}"
+# UPDATED: Use the dynamic BASE_URL
+product_url = f"{BASE_URL}/Shop/{product_id}" 
 
 print(f"Opening: {product_url}")
 driver.get(product_url)
@@ -95,7 +107,8 @@ time.sleep(2)
 # -----------------------------
 # Step 3: Go to Cart Page
 # -----------------------------
-cart_url = "http://3.214.127.147:5174/Cart"
+# UPDATED: Use the dynamic BASE_URL
+cart_url = f"{BASE_URL}/Cart"
 print(f"\nOpening Cart: {cart_url}")
 driver.get(cart_url)
 time.sleep(3)
