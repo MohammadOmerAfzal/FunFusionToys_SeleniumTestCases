@@ -156,23 +156,23 @@ def footer_test():
     print("\n=== TEST: Footer ===")
     driver.get(BASE_URL)
     
-    # Scroll to bottom slowly to trigger lazy-loaded footer
+    # Scroll to bottom slowly to trigger lazy-loading
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     
-    # Wait until footer contains expected text
     try:
-        footer = WebDriverWait(driver, 20).until(
-            EC.text_to_be_present_in_element((By.CLASS_NAME, "Footer"), "© 2024 Fun Fusion Toys")
+        # Wait for the footer-bottom paragraph specifically
+        footer_text_elem = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div.Footer div.footer-bottom p"))
         )
-        print("✅ Footer verified")
-    except:
-        # Fallback: grab footer element and print what is actually there
-        try:
-            footer_elem = driver.find_element(By.CLASS_NAME, "Footer")
+        footer_text = footer_text_elem.text.strip()
+        
+        if "© 2024 Fun Fusion Toys" in footer_text:
+            print("✅ Footer verified")
+        else:
             print("❌ Footer text mismatch")
-            print("Found text:", footer_elem.text[:500])
-        except:
-            print("❌ Footer not found at all")
+            print("Found text:", footer_text[:500])
+    except:
+        print("❌ Footer not found at all")
 
 
 # ------------------ Run All Tests ------------------ #
