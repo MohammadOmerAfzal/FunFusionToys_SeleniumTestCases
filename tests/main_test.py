@@ -112,7 +112,7 @@ def cart_decrement_test():
 
         # Check remaining cart items
         cart_items = driver.find_elements(By.CSS_SELECTOR, ".cartitems-format")
-        print(f"Cart now contains {len(cart_items)} item(s)")
+        print(f"✅Cart now contains {len(cart_items)} item(s)")
     except:
         print("❌ No remove button found. Cart may be empty or selector is wrong.")
 
@@ -173,8 +173,76 @@ def footer_test():
             print("Found text:", footer_text[:500])
     except:
         print("❌ Footer not found at all")
+# ------------------ 9) My Orders Page ------------------ #
+def my_orders_test():
+    print("\n=== TEST: MyOrders Page ===")
+    driver.get(f"{BASE_URL}/MyOrders")
+    sleep_for_react(3)
+    
+    # Check if we're on the MyOrders page
+    try:
+        # Look for the page heading
+        page_heading = wait.until(
+            EC.presence_of_element_located((By.TAG_NAME, "h1"))
+        )
+        
+        if "My Orders" in page_heading.text:
+            print("✅ MyOrders page loaded successfully")
+        else:
+            print(f"ℹ️ Page heading: {page_heading.text}")
+            
+        # Check for order cards
+        order_cards = driver.find_elements(By.CLASS_NAME, "order-card")
+        print(f"✅ Found {len(order_cards)} order(s)")
+        
+        # Check for Sign Out button
+        try:
+            sign_out_btn = driver.find_element(By.XPATH, "//button[text()='Sign Out']")
+            print("✅ Sign Out button is present")
+        except:
+            print("ℹ️ Sign Out button not found")
+            
+    except Exception as e:
+        print(f"❌ Failed to access MyOrders page: {e}")
 
-
+# ------------------ 10) Logout Test ------------------ #
+def logout_test():
+    print("\n=== TEST: Logout ===")
+    
+    # First go to a page where we can see logout button (MyOrders or Cart)
+    driver.get(f"{BASE_URL}/MyOrders")
+    sleep_for_react(2)
+    
+    try:
+        # Find and click the Sign Out button
+        sign_out_btn = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Sign Out']"))
+        )
+        sign_out_btn.click()
+        print("✅ Clicked Sign Out button")
+        sleep_for_react(3)
+        
+        # Verify we're redirected to login/landing page
+        current_url = driver.current_url
+        if "/Login" in current_url or "/login" in current_url or BASE_URL == current_url:
+            print("✅ Successfully logged out and redirected")
+            
+            # Try to access a protected page to confirm logout
+            driver.get(f"{BASE_URL}/MyOrders")
+            sleep_for_react(2)
+            
+            # After logout, we should be redirected away from MyOrders
+            if "/MyOrders" not in driver.current_url:
+                print("✅ Confirmed: Cannot access MyOrders after logout")
+            else:
+                print("ℹ️ Still on MyOrders page after logout")
+                
+        else:
+            print(f"ℹ️ Current URL after logout: {current_url}")
+            
+    except Exception as e:
+        print(f"❌ Logout test failed: {e}")
+        print("Maybe already logged out or button not found")
 # ------------------ Run All Tests ------------------ #
 if __name__ == "__main__":
     registration_test()
