@@ -3,6 +3,16 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
+import os # <-- NEW: Import os module
+
+# --- Dynamic Host Setup (Required for CI) ---
+# SELENIUM_HOST will be 'selenium-node-ci' (container name)
+SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+
+# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
+# --------------------------------------------
 
 # Setup
 chrome_options = Options()
@@ -11,14 +21,16 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
 driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',  # this is the Selenium container
+    # UPDATED: Use the dynamic SELENIUM_URL
+    command_executor=SELENIUM_URL,  
     options=chrome_options
 )
 
 print("Starting complete checkout flow...")
 
 # 1. Login
-driver.get("http://3.214.127.147:5174/")
+# UPDATED: Use BASE_URL
+driver.get(f"{BASE_URL}/")
 time.sleep(2)
 driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys("m.omarafzal12@gmail.com")
 driver.find_element(By.XPATH, "//input[@placeholder='Password']").send_keys("123")
@@ -27,19 +39,22 @@ time.sleep(3)
 print("Logged in")
 
 # 2. Add to cart
-driver.get("http://3.214.127.147:5174/Shop/676d55d151fc50240e3c9070")
+# UPDATED: Use BASE_URL
+driver.get(f"{BASE_URL}/Shop/676d55d151fc50240e3c9070")
 time.sleep(3)
 driver.find_element(By.CSS_SELECTOR, "button.add-to-cart-btn").click()
 time.sleep(2)
 print("Added to cart")
 
 # 3. Go to cart
-driver.get("http://3.214.127.147:5174/Cart")
+# UPDATED: Use BASE_URL
+driver.get(f"{BASE_URL}/Cart")
 time.sleep(3)
 print("On cart page")
 
 # 4. Go to checkout
-driver.get("http://3.214.127.147:5174/Checkout")
+# UPDATED: Use BASE_URL
+driver.get(f"{BASE_URL}/Checkout")
 time.sleep(3)
 print("On checkout page")
 
