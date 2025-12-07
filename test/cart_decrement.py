@@ -6,9 +6,20 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 import time
+import os # <-- NEW: Import os module
 
-PRODUCT_URL = "http://3.214.127.147:5174/Shop/676d55d151fc50240e3c9070"
-CART_URL = "http://3.214.127.147:5174/Cart"
+# --- Dynamic Host Setup (Required for CI) ---
+# SELENIUM_HOST will be 'selenium-node-ci' (container name)
+SELENIUM_HOST = os.environ.get('SELENIUM_HOST', 'localhost')
+SELENIUM_URL = f'http://{SELENIUM_HOST}:4444/wd/hub'
+
+# BASE_URL will be 'http://frontend-ci:5173' (internal service name and port)
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5174') 
+# --------------------------------------------
+
+# UPDATED: Use dynamic BASE_URL
+PRODUCT_URL = f"{BASE_URL}/Shop/676d55d151fc50240e3c9070" 
+CART_URL = f"{BASE_URL}/Cart" 
 
 # ---- Chrome / Selenium setup ----
 chrome_options = Options()
@@ -18,7 +29,8 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--window-size=1920,1080")
 
 driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',  # this is the Selenium container
+    # UPDATED: Use the dynamic SELENIUM_URL
+    command_executor=SELENIUM_URL,  
     options=chrome_options
 )
 
@@ -32,6 +44,7 @@ def get_cart_row():
 def read_quantity_from_row(row):
     ps = row.find_elements(By.TAG_NAME, "p")
     if len(ps) >= 3:
+        # Extracts digits from the text content of the quantity element
         digits = "".join(ch for ch in ps[2].text.strip() if ch.isdigit())
         return int(digits) if digits else None
     return None
@@ -42,7 +55,7 @@ try:
     print("=" * 60)
 
     # Go to product page
-    driver.get(PRODUCT_URL)
+    driver.get(PRODUCT_URL) # Uses dynamic URL
     print("1. Product page opened")
 
     qty_input = wait.until(EC.presence_of_element_located((By.ID, "quantity")))
@@ -55,7 +68,7 @@ try:
     print("3. Product added to cart")
     time.sleep(1.5)
 
-    driver.get(CART_URL)
+    driver.get(CART_URL) # Uses dynamic URL
     print("4. Navigated to cart page")
     time.sleep(1.5)
 
@@ -85,6 +98,7 @@ try:
     target_qty = initial_qty - 1
 
     def qty_updated(driver):
+        # Must locate the row again to avoid StaleElementReferenceException
         try:
             new_row = driver.find_element(By.CSS_SELECTOR, "div.cartitems-format.cartformat")
             return read_quantity_from_row(new_row) == target_qty
@@ -108,4 +122,3 @@ except Exception as e:
 finally:
     print("\nClosing browser...")
     driver.quit()
-
